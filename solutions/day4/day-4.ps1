@@ -1,135 +1,60 @@
-$fileContent = Get-Content -Path inputs\day4test.txt
+$fileContent = Get-Content -Path inputs\day4.txt
 
-$hashtable = [ordered]@{}
-$index = 0 
-foreach ($line in Get-Content -Path inputs\day4test.txt) {
-    $hashtable.Add($index, $line)
-    $index++
-}
-$test = @()
-foreach ($line in Get-Content -Path inputs\day4test.txt) {
-    $test += $line
-}
+# Part 1: 2458
 
-Write-Output $test
-
-for ($i = 0; $i -lt $test.Count; $i++) {
-    $line = $test[$i]
-    for ($j = 0; $j -lt $test.Count; $j++) {
+# Find all X coordinates
+$xcoordinates = @()
+for ($i = 0; $i -lt $fileContent.Count; $i++) {
+    $line = $fileContent[$i]
+    for ($j = 0; $j -lt $line.Length; $j++) {
         $char = $line[$j]
         if ($char -eq "X") {
-            $horizontal = ($i + 1, $j)
-            $vertical = ($i, $j + 1)
-            $diagonal = ($i + 1, $j + 1)
-            $diagonal2 = ($i - 1, $j + 1)
-            $diagonal3 = ($i + 1, $j - 1)
-            $diagonal4 = ($i - 1, $j - 1)
+            $xcoordinates += [PSCustomObject]@{icoor = $i
+                                                jcoor = $j}
         }
     }
 }
 
-# $pattern = "XMAS|SAMX"
+Write-Output $xcoordinates.Count
 
-# $horizontalMatches = [regex]::Matches($fileContent, $pattern)
-# Write-Output $horizontalMatches.Count
-
-
-function checkHorizontal {
-    param (
-        $fileContent
-    )
-
-    $pattern = "XMAS|SAMX"
-
-    $horizontalMatches = [regex]::Matches($fileContent, $pattern)
-    return $horizontalMatches.Count
+$xmCoordinates = @()
+foreach ($x in $xcoordinates) {
+    for ($i = -1; $i -lt 2; $i++){
+        for ($j = -1; $j -lt 2; $j++){
+            $newCoordinatei = $x.icoor + $i
+            $newCoordinatej = $x.jcoor + $j
+            if ($newCoordinatei -ge 0 -and $newCoordinatej -ge 0 -and $newCoordinatei -lt $fileContent.Count -and $newCoordinatej -lt $fileContent[$newCoordinatei].Length) {
+                if ($fileContent[$newCoordinatei][$newCoordinatej] -eq "M") {
+                    $xmCoordinates += [PSCustomObject]@{xcoori = $x.icoor
+                                                        xcoorj = $x.jcoor
+                                                        mcoori = $newCoordinatei
+                                                        mcoorj = $newCoordinatej}
+                }
+            }
+        }
+    }
 }
 
+Write-Output $xmCoordinates
 
-
-# function checkVertical {
-#     param (
-#         $fileContent
-#     )
-
-#     for ($i = 0; $i -lt $fileContent.Count; $i++) {
-#         $line = $fileContent[$i]
-#         for ($j = 0; $j -lt $line.Count; $j++) {
-#             $char = $line[$j]
-#             $checking = $true
-#             $index = 0 
-#             while $checking {
-#                 if ($char -eq "X") {
-#                     $index++
-#                     $pattern = "XMAS"
-#                     $result = Check-NextLine -fileContent $fileContent -i $i -j $j -nextLetter $pattern[$index]
-#                     if $result = ""
-#                 }
-
-#             }
-#             if ($char -eq "X") {
-#                 Check-NextLine
-#             }
-#         }
-#     }
-#     foreach ($line in $fileContent) {
-#         foreach ($char in $line) {
-
-#             while $checking {
-#                 if ($char -eq "X") {
-#                     Check-NextLine
-#                 }
-#             }
-#             if ($char -eq "X") {
-                
-#             }
-#         }
-#     }
-# }
-
-function Flip-Array {
-    param (
-        $fileContent
-    )
-
-    $transposed = @()
-
-    Write-Output $fileContent.Length
-
-
-
-    for ($i = 0; $i -lt $array.Count; $i++) {
-        
+$count = 0 
+# Find rest of word
+foreach ($xm in $xmCoordinates) {
+    $directioni = $xm.mcoori - $xm.xcoori
+    $directionj = $xm.mcoorj - $xm.xcoorj 
+    $Atargeti = $xm.mcoori + $directioni
+    $Atargetj = $xm.mcoorj + $directionj
+    if ($Atargeti -ge 0 -and $Atargetj -ge 0 -and $Atargeti -lt $fileContent.Count -and $Atargetj -lt $fileContent[$Atargeti].Length) {
+        if ($fileContent[$Atargeti][$Atargetj] -eq "A") {
+            $Stargeti = $Atargeti + $directioni
+            $Stargetj = $Atargetj + $directionj
+            if ($Stargeti -ge 0 -and $Stargetj -ge 0 -and $Stargeti -lt $fileContent.Count -and $Stargetj -lt $fileContent[$Stargeti].Length) {
+                if ($fileContent[$Stargeti][$Stargetj] -eq "S") {
+                    $count++
+                }
+        }
     }
-
-    for ($i = 0; $i -lt $fileContent.Length; $i++) {
-        $row = ($fileContent | ForEach-Object {
-            if ($i -lt $_.Length) { $_[$i] } else { "" }
-        }) -join ""
-        $transposed += $row
-    }
-    
+}
 }
 
-$flippedArray = Flip-Array -fileContent $fileContent
-Write-Output $flippedArray
-
-function Check-NextLine {
-    param (
-        $fileContent,
-        $i,
-        $j,
-        $nextLetter
-    )
-
-    $nextLine = $fileContent[$i + 1]
-    $nextChar = $nextLine[$j]
-    if ($nextChar -eq "X") {
-        $count++
-    }
-
-}
-
-
-$count = checkHorizontal -fileContent $fileContent
 Write-Output $count
