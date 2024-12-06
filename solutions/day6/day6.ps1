@@ -15,6 +15,14 @@ $direction = @("up", "right", "down", "left")
 $guardFacing = 0
 $timesMoved = 0 
 
+$loop = $true
+while ($loop) {
+    Move-Guard -guardFacing $guardFacing -currentPosition $currentPosition -content $content -direction $direction
+    if ($loop = Check-OffMap -content $content -currentPosition $currentPosition) {
+        $loop = $false
+    }
+}
+
 function Move-Guard {
     param (
         $guardFacing,
