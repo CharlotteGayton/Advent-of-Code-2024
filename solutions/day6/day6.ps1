@@ -15,14 +15,6 @@ $direction = @("up", "right", "down", "left")
 $guardFacing = 0
 $timesMoved = 0 
 
-$loop = $true
-while ($loop) {
-    Move-Guard -guardFacing $guardFacing -currentPosition $currentPosition -content $content -direction $direction
-    if ($loop = Check-OffMap -content $content -currentPosition $currentPosition) {
-        $loop = $false
-    }
-}
-
 function Move-Guard {
     param (
         $guardFacing,
@@ -30,37 +22,38 @@ function Move-Guard {
         $content,
         $direction
     )
-    $guardDirection = $direction[0] 
+    $guardDirection = $direction[$guardFacing] 
     $i = $currentPosition[0]
     $j = $currentPosition[1]
 
-    if ($guardFacing -eq "up") {
-        $j -= 1
-    }
-    if ($guardFacing -eq "left") {
+    if ($guardDirection -eq "up") {
         $i -= 1
     }
-    if ($guardFacing -eq "right") {
-        $i += 1
+    if ($guardDirection -eq "left") {
+        $j -= 1
     }
-    if ($guardFacing -eq "down") {
+    if ($guardDirection -eq "right") {
         $j += 1
     }
-    if (Check-ForObstacle -content $content -newPosition $newPosition) {
+    if ($guardDirection -eq "down") {
+        $i += 1
+    }
+    if (Check-ForObstacle -content $content -i $i -j $j) {
         $guardFacing = Turn-Guard -direction $direction -guardFacing $guardFacing
     } else {
-        $newPosition = ($i, $j)
-        $timesMoved++
+        return @($i, $j), $timesMoved++, $guardFacing
     }
 }
 
 function Check-ForObstacle {
     param (
         $content,
-        $newPosition
+        $i,
+        $j
     )
-    $i = $newPosition[0]
-    $j = $newPosition[1]
+    # if ($i -gt $content.Length -or $j -gt $content.Length) {
+    #     return $false
+    # }
     $tile = $content[$i][$j]
     if ($tile -eq "#") {
         return $true
@@ -93,6 +86,22 @@ function Turn-Guard {
         $guardFacing += 1
     }
     return $guardFacing
+}
+
+
+
+$loop = $true
+while ($loop) {
+    $oldPosition = $currentPosition
+    $currentPosition, $timesMoved, $guardFacing = Move-Guard -guardFacing $guardFacing -currentPosition $currentPosition -content $content -direction $direction
+    if ($null -ne $currentPosition) {
+        if (Check-OffMap -content $content -currentPosition $currentPosition) {
+            $loop = $false
+        }
+    }
+    else {
+        $currentPosition = $oldPosition
+    }
 }
 
 Write-Output $timesMoved
